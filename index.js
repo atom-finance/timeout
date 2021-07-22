@@ -30,11 +30,12 @@ module.exports = timeout
  * @param {number|string} [time=5000] The timeout as a number of milliseconds or a string for `ms`
  * @param {object} [options] Additional options for middleware
  * @param {boolean} [options.respond=true] Automatically emit error when timeout reached
+ * @param {function} [callback] A callback for when a timeout is about to be emitted
  * @return {function} middleware
  * @public
  */
 
-function timeout (time, options) {
+function timeout (time, options, callback) {
   var opts = options || {}
 
   var delay = typeof time === 'string'
@@ -42,10 +43,12 @@ function timeout (time, options) {
     : Number(time || 5000)
 
   var respond = opts.respond === undefined || opts.respond === true
-
   return function (req, res, next) {
     var id = setTimeout(function () {
       req.timedout = true
+      if(callback && typeof callback === 'function') {
+        callback()
+      }
       req.emit('timeout', delay)
     }, delay)
 
